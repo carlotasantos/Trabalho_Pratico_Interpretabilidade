@@ -3,6 +3,7 @@ from torchvision import datasets, transforms
 
 from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini, complexity_components
 from model import MNISTCNN
+from explanations import saliency_gradient, integrated_gradients
 
 
 def main():
@@ -35,16 +36,11 @@ def main():
         gt_box = gt_box_mnist(img_pil)
 
         # ---------- Gradiente Simples ----------
-        x_g = x.clone().detach().requires_grad_(True)
-
-        logits = model(x_g)
+        # ---------- Gradiente Simples ----------
+        logits = model(x)
         y_pred = logits.argmax(1).item()
-        score = logits[0, y_pred]
 
-        model.zero_grad()
-        score.backward()
-
-        saliency = x_g.grad.abs().squeeze().cpu().numpy()
+        saliency = saliency_gradient(model, x, y_pred)
         saliency_norm = saliency / (saliency.max() + 1e-12)
 
         hits_g += pointing_game_hit(saliency, gt_box)
@@ -52,23 +48,8 @@ def main():
         comp_g += complexity_components(saliency_norm, q)
 
         # ---------- Integrated Gradients ----------
-        baseline = torch.zeros_like(x)
-        grads_sum = torch.zeros_like(x)
-
-        for k in range(1, 21):  # 20 passos
-            alpha = k / 20
-            x_int = baseline + alpha * (x - baseline)
-            x_int.requires_grad_()
-
-            out = model(x_int)
-            score_int = out[0, y_pred]
-
-            grad = torch.autograd.grad(score_int, x_int)[0]
-            grads_sum += grad
-
-        ig = (x - baseline) * (grads_sum / 20)
-
-        saliency_ig = ig.abs().squeeze().cpu().numpy()
+        # ---------- Integrated Gradients ----------
+        saliency_ig = integrated_gradients(model, x, y_pred, steps=20)
         saliency_ig_norm = saliency_ig / (saliency_ig.max() + 1e-12)
 
         hits_ig += pointing_game_hit(saliency_ig, gt_box)
