@@ -11,7 +11,6 @@ def main():
     print("Device:", device)
 
     transform = transforms.ToTensor()
-    train = datasets.MNIST(root="data", train=True, download=False, transform=transform)
 
     train_pil = datasets.MNIST(root="data", train=True, download=False)  # sem transform
     img_pil, y_true = train_pil[0]
@@ -24,6 +23,9 @@ def main():
     model.load_state_dict(torch.load("mnist_cnn.pt", map_location=device))
     model.eval()
 
+
+    #predição
+    #permite gradientes na imagem
     x.requires_grad_()
 
     logits = model(x)
@@ -39,12 +41,13 @@ def main():
     gt_box = gt_box_mnist(img_pil)
     hit = pointing_game_hit(saliency, gt_box)
 
-    print("GT box:", gt_box)
-    print("Pointing Game hit:", hit)
 
+    print("Label verdadeira:", y_true)
+    print("Predição do modelo:", y_pred)
     print("Saliency shape:", saliency.shape)
     print("Saliency min/max:", saliency.min(), saliency.max())
-
+    print("GT box:", gt_box)
+    print("Pointing Game hit:", hit)
 
 if __name__ == "__main__":
     main()
