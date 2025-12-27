@@ -27,3 +27,49 @@ def sparseness_gini(a, eps=1e-12):
     # fórmula do Gini para valores que não sejam negativos
     gini = (2 * (i * a).sum()) / (n * a.sum()) - (n + 1) / n
     return float(gini)
+
+
+def complexity_components(saliency, q=0.9):
+    s = np.abs(np.array(saliency, dtype=float))
+
+    thr = np.quantile(s, q)
+
+    mask = (s >= thr)
+
+    H, W = mask.shape
+    visited = np.zeros((H, W), dtype=bool)
+
+    components = 0
+
+    for r in range(H):
+        for c in range(W):
+            if mask[r, c] and not visited[r, c]:
+                components += 1
+
+                stack = [(r, c)]
+                visited[r, c] = True
+
+                while stack:
+                    rr, cc = stack.pop()
+
+                    # cima  
+                    if rr > 0 and mask[rr - 1, cc] and not visited[rr - 1, cc]:
+                        visited[rr - 1, cc] = True
+                        stack.append((rr - 1, cc))
+
+                    #baixo
+                    if rr < H - 1 and mask[rr + 1, cc] and not visited[rr + 1, cc]:
+                        visited[rr + 1, cc] = True
+                        stack.append((rr + 1, cc))
+
+                    # esquerda
+                    if cc > 0 and mask[rr, cc - 1] and not visited[rr, cc - 1]:
+                        visited[rr, cc - 1] = True
+                        stack.append((rr, cc - 1))
+
+                    # direita
+                    if cc < W - 1 and mask[rr, cc + 1] and not visited[rr, cc + 1]:
+                        visited[rr, cc + 1] = True
+                        stack.append((rr, cc + 1))
+
+    return components
