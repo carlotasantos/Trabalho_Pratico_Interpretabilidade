@@ -52,7 +52,7 @@ def complexity_components(saliency, q=0.9):
                 while stack:
                     rr, cc = stack.pop()
 
-                    # cima  
+                    # cima
                     if rr > 0 and mask[rr - 1, cc] and not visited[rr - 1, cc]:
                         visited[rr - 1, cc] = True
                         stack.append((rr - 1, cc))

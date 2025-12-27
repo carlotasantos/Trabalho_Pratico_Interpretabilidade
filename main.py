@@ -1,6 +1,6 @@
 import torch
 from torchvision import datasets, transforms
-from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini
+from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini, complexity_components
 
 from model import MNISTCNN
 
@@ -26,6 +26,7 @@ def main():
 
     hits = 0
     spar_sum = 0.0
+    comp_sum = 0
 
     for i in range(N):
         img_pil, y_true = train_pil[i]
@@ -42,8 +43,9 @@ def main():
         score.backward()
 
         saliency = x.grad.abs().squeeze().cpu().numpy()
-
         spar_sum += sparseness_gini(saliency)
+        comp_sum += complexity_components(saliency, q=0.9)
+
 
         # pointing game
         gt_box = gt_box_mnist(img_pil)
@@ -56,7 +58,8 @@ def main():
     spar_mean = spar_sum / N
     print(f"Sparseness Gini (N={N}): {spar_mean:.4f}")
 
-
+    comp_mean = comp_sum / N
+    print(f"Complexity Components (N={N}): {comp_mean:.4f}")
 
 
 if __name__ == "__main__":
