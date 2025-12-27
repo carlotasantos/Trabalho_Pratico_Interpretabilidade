@@ -1,6 +1,7 @@
 import torch
 from torchvision import datasets, transforms
-from metrics_utils import gt_box_mnist, pointing_game_hit
+from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini
+
 from model import MNISTCNN
 
 
@@ -24,6 +25,7 @@ def main():
     model.eval()
 
     hits = 0
+    spar_sum = 0.0
 
     for i in range(N):
         img_pil, y_true = train_pil[i]
@@ -41,6 +43,8 @@ def main():
 
         saliency = x.grad.abs().squeeze().cpu().numpy()
 
+        spar_sum += sparseness_gini(saliency)
+
         # pointing game
         gt_box = gt_box_mnist(img_pil)
         hit = pointing_game_hit(saliency, gt_box)
@@ -48,6 +52,11 @@ def main():
 
     score_pg = hits / N
     print(f"Pointing Game score (N={N}): {score_pg:.4f}")
+
+    spar_mean = spar_sum / N
+    print(f"Sparseness Gini (N={N}): {spar_mean:.4f}")
+
+
 
 
 if __name__ == "__main__":
