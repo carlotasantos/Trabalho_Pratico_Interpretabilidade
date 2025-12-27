@@ -43,8 +43,12 @@ def main():
         score.backward()
 
         saliency = x.grad.abs().squeeze().cpu().numpy()
-        spar_sum += sparseness_gini(saliency)
-        comp_sum += complexity_components(saliency, q=0.9)
+        s_min = saliency.min()
+        s_max = saliency.max()
+        saliency_norm = (saliency - s_min) / (s_max - s_min+1e-12)
+
+        spar_sum += sparseness_gini(saliency_norm)
+        comp_sum += complexity_components(saliency_norm, q=0.9)
 
 
         # pointing game
