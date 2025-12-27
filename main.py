@@ -1,11 +1,11 @@
 from torchvision import datasets
+from metrics_utils import gt_box_mnist
 
-# Faz download e guarda em: projeto/data/MNIST/...
-datasets.MNIST(root="data", train=True, download=True)
-datasets.MNIST(root="data", train=False, download=True)
-
-print("MNIST descarregado para a pasta: data/MNIST")
-
+# carregar dataset (já descarregado)
 train = datasets.MNIST(root="data", train=True, download=False)
-print(len(train), train[0][0].size, train[0][1])
 
+img, label = train[0]
+box = gt_box_mnist(img)
+
+print("Label:", label)
+print("GT box:", box)
