@@ -36,7 +36,6 @@ def main():
         gt_box = gt_box_mnist(img_pil)
 
         # ---------- Gradiente Simples ----------
-        # ---------- Gradiente Simples ----------
         logits = model(x)
         y_pred = logits.argmax(1).item()
 
@@ -47,7 +46,6 @@ def main():
         spar_g += sparseness_gini(saliency_norm)
         comp_g += complexity_components(saliency_norm, q)
 
-        # ---------- Integrated Gradients ----------
         # ---------- Integrated Gradients ----------
         saliency_ig = integrated_gradients(model, x, y_pred, steps=20)
         saliency_ig_norm = saliency_ig / (saliency_ig.max() + 1e-12)
