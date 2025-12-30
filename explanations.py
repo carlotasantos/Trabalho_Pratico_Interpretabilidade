@@ -29,3 +29,29 @@ def integrated_gradients(model, x, target, steps=20):
 
     ig = (x - baseline) * (grads_sum / steps)
     return ig.abs().squeeze().detach().cpu().numpy()
+
+
+def occlusion_map(model, x, target, patch=4):
+    model.eval()
+
+    with torch.no_grad():
+        base_score = model(x)[0, target].item()
+
+    _, _, H, W = x.shape
+    heatmap = torch.zeros((H, W), device=x.device)
+
+
+    for i in range(0, H, patch):
+        for j in range(0, W, patch):
+            x_occ = x.clone()
+            x_occ[:, :, i:i+patch, j:j+patch] = 0.0  # tapa a região
+
+            with torch.no_grad():
+                score = model(x_occ)[0, target].item()
+
+
+            importance = base_score - score
+
+            heatmap[i:i+patch, j:j+patch] = importance
+
+    return heatmap.abs().cpu().numpy()
