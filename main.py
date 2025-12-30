@@ -3,7 +3,7 @@ from torchvision import datasets, transforms
 
 from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini, complexity_components
 from model import MNISTCNN
-from explanations import saliency_gradient, integrated_gradients, occlusion_map
+from explanations import saliency_gradient, integrated_gradients, occlusion_map, guided_backprop
 
 
 def main():
@@ -28,6 +28,7 @@ def main():
     hits_g, spar_g, comp_g = 0, 0.0, 0
     hits_ig, spar_ig, comp_ig = 0, 0.0, 0
     hits_occ, spar_occ, comp_occ = 0, 0.0, 0
+    hits_gb, spar_gb, comp_gb = 0, 0.0, 0
 
     for i in range(N):
         img_pil, _ = data_pil[i]
@@ -64,6 +65,13 @@ def main():
         spar_occ += sparseness_gini(saliency_occ_norm)
         comp_occ += complexity_components(saliency_occ_norm, q)
 
+        # ---------- Guided Backprop ----------
+        saliency_gb = guided_backprop(model, x, y_pred)
+        saliency_gb_norm = saliency_gb / (saliency_gb.max() + 1e-12)
+
+        hits_gb += pointing_game_hit(saliency_gb, gt_box)
+        spar_gb += sparseness_gini(saliency_gb_norm)
+        comp_gb += complexity_components(saliency_gb_norm, q)
 
     print(f"\n--- Resultados (N={N}) ---")
 
@@ -78,6 +86,10 @@ def main():
     print(f"\nOcclusion | Pointing Game: {hits_occ / N:.4f}")
     print(f"Occlusion | Sparseness: {spar_occ / N:.4f}")
     print(f"Occlusion | Complexity: {comp_occ / N:.4f}")
+
+    print(f"\nGuided Backprop | Pointing Game: {hits_gb / N:.4f}")
+    print(f"Guided Backprop | Sparseness: {spar_gb / N:.4f}")
+    print(f"Guided Backprop | Complexity: {comp_gb / N:.4f}")
 
 
 if __name__ == "__main__":

@@ -55,3 +55,27 @@ def occlusion_map(model, x, target, patch=4):
             heatmap[i:i+patch, j:j+patch] = importance
 
     return heatmap.abs().cpu().numpy()
+
+
+def guided_backprop(model, x, target):
+    hooks = []
+
+    def hook_fn(module, grad_in, grad_out):
+        return (torch.clamp(grad_in[0], min=0.0),)
+
+    for m in model.modules():
+        if isinstance(m, torch.nn.ReLU):
+            hooks.append(m.register_full_backward_hook(hook_fn))
+
+    x = x.clone().detach().requires_grad_(True)
+
+    out = model(x)
+    score = out[0, target]
+
+    model.zero_grad()
+    score.backward()
+
+    for h in hooks:
+        h.remove()
+
+    return x.grad.abs().squeeze().cpu().numpy()
