@@ -3,7 +3,7 @@ from torchvision import datasets, transforms
 
 from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini, complexity_components
 from model import MNISTCNN
-from explanations import saliency_gradient, integrated_gradients, occlusion_map, guided_backprop
+from explanations import saliency_gradient, integrated_gradients, occlusion_map, guided_backprop, grad_cam
 
 
 def main():
@@ -29,6 +29,7 @@ def main():
     hits_ig, spar_ig, comp_ig = 0, 0.0, 0
     hits_occ, spar_occ, comp_occ = 0, 0.0, 0
     hits_gb, spar_gb, comp_gb = 0, 0.0, 0
+    hits_cam, spar_cam, comp_cam = 0, 0.0, 0
 
     for i in range(N):
         img_pil, _ = data_pil[i]
@@ -73,6 +74,14 @@ def main():
         spar_gb += sparseness_gini(saliency_gb_norm)
         comp_gb += complexity_components(saliency_gb_norm, q)
 
+        # ---------- Grad-CAM ----------
+        saliency_cam = grad_cam(model, x, y_pred)
+        saliency_cam_norm = saliency_cam / (saliency_cam.max() + 1e-12)
+
+        hits_cam += pointing_game_hit(saliency_cam, gt_box)
+        spar_cam += sparseness_gini(saliency_cam_norm)
+        comp_cam += complexity_components(saliency_cam_norm, q)
+
     print(f"\n--- Resultados (N={N}) ---")
 
     print(f"Gradiente | Pointing Game: {hits_g / N:.4f}")
@@ -90,6 +99,10 @@ def main():
     print(f"\nGuided Backprop | Pointing Game: {hits_gb / N:.4f}")
     print(f"Guided Backprop | Sparseness: {spar_gb / N:.4f}")
     print(f"Guided Backprop | Complexity: {comp_gb / N:.4f}")
+
+    print(f"\nGrad-CAM | Pointing Game: {hits_cam / N:.4f}")
+    print(f"Grad-CAM | Sparseness: {spar_cam / N:.4f}")
+    print(f"Grad-CAM | Complexity: {comp_cam / N:.4f}")
 
 
 if __name__ == "__main__":

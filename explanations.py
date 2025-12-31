@@ -79,3 +79,38 @@ def guided_backprop(model, x, target):
         h.remove()
 
     return x.grad.abs().squeeze().cpu().numpy()
+
+def grad_cam(model, x, target):
+    import torch.nn.functional as F
+
+    acts = None
+    grads = None
+
+    def save_acts(module, inp, out):
+        nonlocal acts
+        acts = out
+
+    def save_grads(module, grad_in, grad_out):
+        nonlocal grads
+        grads = grad_out[0]
+
+    h1 = model.conv2.register_forward_hook(save_acts)
+    h2 = model.conv2.register_full_backward_hook(save_grads)
+
+    out = model(x)
+    score = out[0, target]
+
+    model.zero_grad()
+    score.backward()
+
+    h1.remove()
+    h2.remove()
+
+    # pesos
+    w = grads.mean(dim=(2, 3), keepdim=True)          # (1, C, 1, 1)
+    cam = (w * acts).sum(dim=1, keepdim=True)         # (1, 1, h, w)
+    cam = F.relu(cam)
+
+    cam = F.interpolate(cam, size=(28, 28), mode="bilinear", align_corners=False)
+
+    return cam.squeeze().detach().cpu().numpy()
