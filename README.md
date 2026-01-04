@@ -1,2 +1,0 @@
-# Trabalho_Pratico_Interpretabilidade
-
