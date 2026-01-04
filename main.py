@@ -43,8 +43,8 @@ def main():
     transform = transforms.ToTensor()
 
     # dataset para bbox (PIL) e para o modelo (tensor)
-    data_pil = datasets.MNIST(root="data", train=False, download=False)
-    data_tensor = datasets.MNIST(root="data", train=False, download=False, transform=transform)
+    data_pil = datasets.MNIST(root="data", train=False, download=True)
+    data_tensor = datasets.MNIST(root="data", train=False, download=True, transform=transform)
 
     # amostra aleatória reprodutível
     indices = random.sample(range(len(data_tensor)), N)

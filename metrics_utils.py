@@ -1,8 +1,9 @@
 import numpy as np
 
-
+# No MNIST não existem bounding boxes
+# Usamos como ground truth a bounding box do dígito (pixels > threshold)
 def gt_box_mnist(img, threshold=0):
-    img = np.array(img)  # PIL -> numpy (28x28)
+    img = np.array(img)
     ys, xs = np.where(img > threshold)
     return xs.min(), xs.max(), ys.min(), ys.max()
 
