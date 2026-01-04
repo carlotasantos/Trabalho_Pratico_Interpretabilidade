@@ -13,6 +13,20 @@ def pointing_game_hit(saliency, gt_box):
     xmin, xmax, ymin, ymax = gt_box
     return int(xmin <= x <= xmax and ymin <= y <= ymax)
 
+
+def pointing_game_hit_topk(saliency, gt_box, k=10):
+    h, w = saliency.shape
+    xmin, xmax, ymin, ymax = gt_box
+
+    idx = np.argsort(saliency.flatten())[-k:]
+
+    for i in idx:
+        y, x = divmod(i, w)
+        if xmin <= x <= xmax and ymin <= y <= ymax:
+            return 1
+    return 0
+
+
 def sparseness_gini(a, eps=1e-12):
     a = np.array(a, dtype=float).reshape(-1)
     a = np.abs(a)

@@ -1,7 +1,7 @@
 import torch
 from torchvision import datasets, transforms
 
-from metrics_utils import gt_box_mnist, pointing_game_hit, sparseness_gini, complexity_components
+from metrics_utils import gt_box_mnist, pointing_game_hit, pointing_game_hit_topk, sparseness_gini, complexity_components
 from model import MNISTCNN
 from explanations import saliency_gradient, integrated_gradients, occlusion_map, guided_backprop, grad_cam
 
@@ -12,6 +12,7 @@ def main():
 
     N = 200
     q = 0.9
+    K_LIST = [3]
 
     transform = transforms.ToTensor()
 
@@ -31,6 +32,14 @@ def main():
     hits_gb, spar_gb, comp_gb = 0, 0.0, 0
     hits_cam, spar_cam, comp_cam = 0, 0.0, 0
 
+    hits_topk = {
+        "Gradiente": {k: 0 for k in K_LIST},
+        "Integrated Gradients": {k: 0 for k in K_LIST},
+        "Occlusion": {k: 0 for k in K_LIST},
+        "Guided Backprop": {k: 0 for k in K_LIST},
+        "Grad-CAM": {k: 0 for k in K_LIST},
+    }
+
     for i in range(N):
         img_pil, _ = data_pil[i]
         x, _ = data_tensor[i]
@@ -46,6 +55,9 @@ def main():
         saliency_norm = saliency / (saliency.max() + 1e-12)
 
         hits_g += pointing_game_hit(saliency, gt_box)
+        for k in K_LIST:
+            hits_topk["Gradiente"][k] += pointing_game_hit_topk(saliency, gt_box, k=k)
+
         spar_g += sparseness_gini(saliency_norm)
         comp_g += complexity_components(saliency_norm, q)
 
@@ -54,6 +66,9 @@ def main():
         saliency_ig_norm = saliency_ig / (saliency_ig.max() + 1e-12)
 
         hits_ig += pointing_game_hit(saliency_ig, gt_box)
+        for k in K_LIST:
+            hits_topk["Integrated Gradients"][k] += pointing_game_hit_topk(saliency_ig, gt_box, k=k)
+
         spar_ig += sparseness_gini(saliency_ig_norm)
         comp_ig += complexity_components(saliency_ig_norm, q)
 
@@ -63,6 +78,9 @@ def main():
         saliency_occ_norm = saliency_occ / (saliency_occ.max() + 1e-12)
 
         hits_occ += pointing_game_hit(saliency_occ, gt_box)
+        for k in K_LIST:
+            hits_topk["Occlusion"][k] += pointing_game_hit_topk(saliency_occ, gt_box, k=k)
+
         spar_occ += sparseness_gini(saliency_occ_norm)
         comp_occ += complexity_components(saliency_occ_norm, q)
 
@@ -71,6 +89,9 @@ def main():
         saliency_gb_norm = saliency_gb / (saliency_gb.max() + 1e-12)
 
         hits_gb += pointing_game_hit(saliency_gb, gt_box)
+        for k in K_LIST:
+            hits_topk["Guided Backprop"][k] += pointing_game_hit_topk(saliency_gb, gt_box, k=k)
+
         spar_gb += sparseness_gini(saliency_gb_norm)
         comp_gb += complexity_components(saliency_gb_norm, q)
 
@@ -79,6 +100,9 @@ def main():
         saliency_cam_norm = saliency_cam / (saliency_cam.max() + 1e-12)
 
         hits_cam += pointing_game_hit(saliency_cam, gt_box)
+        for k in K_LIST:
+            hits_topk["Grad-CAM"][k] += pointing_game_hit_topk(saliency_cam, gt_box, k=k)
+
         spar_cam += sparseness_gini(saliency_cam_norm)
         comp_cam += complexity_components(saliency_cam_norm, q)
 
@@ -103,6 +127,14 @@ def main():
     print(f"\nGrad-CAM | Pointing Game: {hits_cam / N:.4f}")
     print(f"Grad-CAM | Sparseness: {spar_cam / N:.4f}")
     print(f"Grad-CAM | Complexity: {comp_cam / N:.4f}")
+
+    k = K_LIST[0]
+    print(f"\n--- Pointing Game Top-K (k={k}) ---")
+    print(f"Gradiente | PG@{k}: {hits_topk['Gradiente'][k] / N:.4f}")
+    print(f"Integrated Gradients | PG@{k}: {hits_topk['Integrated Gradients'][k] / N:.4f}")
+    print(f"Occlusion | PG@{k}: {hits_topk['Occlusion'][k] / N:.4f}")
+    print(f"Guided Backprop | PG@{k}: {hits_topk['Guided Backprop'][k] / N:.4f}")
+    print(f"Grad-CAM | PG@{k}: {hits_topk['Grad-CAM'][k] / N:.4f}")
 
 
 if __name__ == "__main__":
