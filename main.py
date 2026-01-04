@@ -1,4 +1,5 @@
 import torch
+import random
 from torchvision import datasets, transforms
 
 from metrics_utils import gt_box_mnist, pointing_game_hit, pointing_game_hit_topk, sparseness_gini, complexity_components
@@ -17,8 +18,13 @@ def main():
     transform = transforms.ToTensor()
 
     # dataset para bbox (PIL) e para o modelo (tensor)
-    data_pil = datasets.MNIST(root="data", train=True, download=False)
-    data_tensor = datasets.MNIST(root="data", train=True, download=False, transform=transform)
+    data_pil = datasets.MNIST(root="data", train=False, download=False)
+    data_tensor = datasets.MNIST(root="data", train=False, download=False, transform=transform)
+
+    seed = 42
+    random.seed(seed)
+
+    indices = random.sample(range(len(data_tensor)), N)
 
     # modelo treinado
     model = MNISTCNN().to(device)
@@ -40,7 +46,8 @@ def main():
         "Grad-CAM": {k: 0 for k in K_LIST},
     }
 
-    for i in range(N):
+
+    for i in indices:
         img_pil, _ = data_pil[i]
         x, _ = data_tensor[i]
         x = x.unsqueeze(0).to(device)
