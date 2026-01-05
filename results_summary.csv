@@ -1,0 +1,6 @@
+metodo,pointing_game_mean,sparseness_mean,pg@3_mean
+Gradiente,0.995,0.6735678250579548,1.0
+Integrated Gradients,1.0,0.9156997314057932,1.0
+Occlusion,0.905,0.8402936875267859,0.98
+Guided Backprop,1.0,0.7728494818650995,1.0
+Grad-CAM,0.685,0.8100994980924172,0.805
