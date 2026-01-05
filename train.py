@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import random
+import numpy as np
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -8,6 +10,21 @@ from model import MNISTCNN
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device:", device)
+
+seed = 42
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
+g = torch.Generator()
+g.manual_seed(seed)
 
 # carregar MNIST
 transform = transforms.ToTensor()
