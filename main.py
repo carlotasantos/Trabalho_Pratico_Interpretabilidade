@@ -47,6 +47,9 @@ def main():
     data_pil = datasets.MNIST(root="data", train=False, download=True)
     data_tensor = datasets.MNIST(root="data", train=False, download=True, transform=transform)
 
+    # proteger caso N > tamanho dataset
+    N = min(N, len(data_tensor))
+
     # amostra aleatória reprodutível
     indices = random.sample(range(len(data_tensor)), N)
 
