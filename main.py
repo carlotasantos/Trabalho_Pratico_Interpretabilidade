@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import torch
+import csv
 from torchvision import datasets, transforms
 
 from metrics_utils import (
@@ -203,6 +204,38 @@ def main():
     print(f"Guided Backprop | PG@{k}: {hits_topk['Guided Backprop'][k] / N:.4f}")
     print(f"Grad-CAM | PG@{k}: {hits_topk['Grad-CAM'][k] / N:.4f}")
 
+    # ---------------- Exportar resultados ----------------
+    # médias por método
+    summary_path = "results_summary.csv"
+    with open(summary_path, mode="w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["metodo", "pointing_game_mean", "sparseness_mean"] + [f"pg@{k}_mean" for k in K_LIST])
+
+        for metodo, vals in results.items():
+            pg_mean = float(np.mean(vals["pg"])) if vals["pg"] else 0.0
+            spar_mean = float(np.mean(vals["spar"])) if vals["spar"] else 0.0
+            topk_means = [float(np.mean(vals["pg_topk"][k])) if vals["pg_topk"][k] else 0.0 for k in K_LIST]
+            writer.writerow([metodo, pg_mean, spar_mean] + topk_means)
+
+    # Resultados por amostra
+    per_sample_path = "results_per_sample.csv"
+    with open(per_sample_path, mode="w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["metodo", "sample_idx", "pointing_game", "sparseness"] + [f"pg@{k}" for k in K_LIST])
+
+        for metodo, vals in results.items():
+            n = len(vals["pg"])
+            for j in range(n):
+                row = [
+                          metodo,
+                          j,
+                          int(vals["pg"][j]),
+                          float(vals["spar"][j]),
+                      ] + [int(vals["pg_topk"][k][j]) for k in K_LIST]
+                writer.writerow(row)
+
+    print(f"\nFicheiros guardados: {summary_path} e {per_sample_path}")
+    # -----------------------------------------------------
 
 if __name__ == "__main__":
     main()
