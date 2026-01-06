@@ -5,9 +5,9 @@ import csv
 from torchvision import datasets, transforms
 
 from metrics_utils import (
-    gt_box_mnist,
-    pointing_game_hit,
-    pointing_game_hit_topk,
+    gt_mask_mnist,
+    pointing_game_hit_mask,
+    pointing_game_hit_topk_mask,
     sparseness_gini,
 )
 from model import MNISTCNN
@@ -79,7 +79,11 @@ def main():
         "Grad-CAM": {k: 0 for k in K_LIST},
     }
 
+    sample_ids = []
+
     for i in indices:
+        sample_ids.append(i)
+
         img_pil, _ = data_pil[i]
         x, _ = data_tensor[i]
         x = x.unsqueeze(0).to(device)
@@ -89,13 +93,13 @@ def main():
             logits = model(x)
             target = int(torch.argmax(logits, dim=1).item())
 
-        gt_box = gt_box_mnist(img_pil)
+        gt_mask = gt_mask_mnist(img_pil, threshold=0)
 
         # ---------- Gradiente ----------
         saliency = saliency_gradient(model, x, target)
         saliency_norm = saliency / (saliency.max() + 1e-12)
 
-        pg_val = pointing_game_hit(saliency, gt_box)
+        pg_val = pointing_game_hit_mask(saliency, gt_mask)
         spar_val = sparseness_gini(saliency_norm)
 
         hits_g += pg_val
@@ -105,7 +109,7 @@ def main():
         results["Gradiente"]["spar"].append(spar_val)
 
         for k in K_LIST:
-            topk_val = pointing_game_hit_topk(saliency, gt_box, k=k)
+            topk_val = pointing_game_hit_topk_mask(saliency, gt_mask, k=k)
             hits_topk["Gradiente"][k] += topk_val
             results["Gradiente"]["pg_topk"][k].append(topk_val)
 
@@ -113,7 +117,7 @@ def main():
         saliency_ig = integrated_gradients(model, x, target, steps=20)
         saliency_ig_norm = saliency_ig / (saliency_ig.max() + 1e-12)
 
-        pg_val = pointing_game_hit(saliency_ig, gt_box)
+        pg_val = pointing_game_hit_mask(saliency_ig, gt_mask)
         spar_val = sparseness_gini(saliency_ig_norm)
 
         hits_ig += pg_val
@@ -123,7 +127,7 @@ def main():
         results["Integrated Gradients"]["spar"].append(spar_val)
 
         for k in K_LIST:
-            topk_val = pointing_game_hit_topk(saliency_ig, gt_box, k=k)
+            topk_val = pointing_game_hit_topk_mask(saliency_ig, gt_mask, k=k)
             hits_topk["Integrated Gradients"][k] += topk_val
             results["Integrated Gradients"]["pg_topk"][k].append(topk_val)
 
@@ -131,7 +135,7 @@ def main():
         saliency_occ = occlusion_map(model, x, target, patch=4)
         saliency_occ_norm = saliency_occ / (saliency_occ.max() + 1e-12)
 
-        pg_val = pointing_game_hit(saliency_occ, gt_box)
+        pg_val = pointing_game_hit_mask(saliency_occ, gt_mask)
         spar_val = sparseness_gini(saliency_occ_norm)
 
         hits_occ += pg_val
@@ -141,7 +145,7 @@ def main():
         results["Occlusion"]["spar"].append(spar_val)
 
         for k in K_LIST:
-            topk_val = pointing_game_hit_topk(saliency_occ, gt_box, k=k)
+            topk_val = pointing_game_hit_topk_mask(saliency_occ, gt_mask, k=k)
             hits_topk["Occlusion"][k] += topk_val
             results["Occlusion"]["pg_topk"][k].append(topk_val)
 
@@ -149,7 +153,7 @@ def main():
         saliency_gb = guided_backprop(model, x, target)
         saliency_gb_norm = saliency_gb / (saliency_gb.max() + 1e-12)
 
-        pg_val = pointing_game_hit(saliency_gb, gt_box)
+        pg_val = pointing_game_hit_mask(saliency_gb, gt_mask)
         spar_val = sparseness_gini(saliency_gb_norm)
 
         hits_gb += pg_val
@@ -159,7 +163,7 @@ def main():
         results["Guided Backprop"]["spar"].append(spar_val)
 
         for k in K_LIST:
-            topk_val = pointing_game_hit_topk(saliency_gb, gt_box, k=k)
+            topk_val = pointing_game_hit_topk_mask(saliency_gb, gt_mask, k=k)
             hits_topk["Guided Backprop"][k] += topk_val
             results["Guided Backprop"]["pg_topk"][k].append(topk_val)
 
@@ -167,7 +171,7 @@ def main():
         saliency_cam = grad_cam(model, x, target)
         saliency_cam_norm = saliency_cam / (saliency_cam.max() + 1e-12)
 
-        pg_val = pointing_game_hit(saliency_cam, gt_box)
+        pg_val = pointing_game_hit_mask(saliency_cam, gt_mask)
         spar_val = sparseness_gini(saliency_cam_norm)
 
         hits_cam += pg_val
@@ -177,7 +181,7 @@ def main():
         results["Grad-CAM"]["spar"].append(spar_val)
 
         for k in K_LIST:
-            topk_val = pointing_game_hit_topk(saliency_cam, gt_box, k=k)
+            topk_val = pointing_game_hit_topk_mask(saliency_cam, gt_mask, k=k)
             hits_topk["Grad-CAM"][k] += topk_val
             results["Grad-CAM"]["pg_topk"][k].append(topk_val)
 
@@ -231,7 +235,7 @@ def main():
             for j in range(n):
                 row = [
                           metodo,
-                          j,
+                          sample_ids[j],
                           int(vals["pg"][j]),
                           float(vals["spar"][j]),
                       ] + [int(vals["pg_topk"][k][j]) for k in K_LIST]
