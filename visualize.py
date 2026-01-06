@@ -68,11 +68,9 @@ def visualize_sample(img_pil, maps, sample_idx, true_label, pred_label, save_pat
 
     fig, axes = plt.subplots(2, 6, figsize=(22, 9))
 
-    fig.suptitle(f"VISUALIZAÇÃO - AMOSTRA {sample_idx}",
-                 fontsize=18, fontweight='bold', y=0.98)
+    fig.suptitle(f"VISUALIZAÇÃO - AMOSTRA {sample_idx}", fontsize=18, fontweight='bold', y=0.98)
 
-    fig.text(0.5, 0.94, f"Verdadeiro: {true_label}  |  Previsto: {pred_label}",
-             ha='center', fontsize=14, fontweight='bold')
+    fig.text(0.5, 0.94, f"Verdadeiro: {true_label}  |  Previsto: {pred_label}", ha='center', fontsize=14, fontweight='bold')
 
     # Imagem original
     axes[0, 0].imshow(img_pil, cmap='gray')
@@ -95,29 +93,24 @@ def visualize_sample(img_pil, maps, sample_idx, true_label, pred_label, save_pat
 
             #Mapa puro
             im1 = axes[0, col].imshow(saliency_map, cmap='hot')
-            axes[0, col].set_title(f"{method_name}\n(MAPA)",
-                                   fontsize=11, fontweight='bold', pad=10)
+            axes[0, col].set_title(f"{method_name}\nMAPA", fontsize=11, fontweight='bold', pad=10)
             axes[0, col].axis('off')
 
             # Overlay
             axes[1, col].imshow(img_pil, cmap='gray')
             im2 = axes[1, col].imshow(saliency_map, cmap='hot', alpha=0.6)
-            axes[1, col].set_title(f"{method_name}\n(OVERLAY)",
-                                   fontsize=11, pad=10)
+            axes[1, col].set_title(f"{method_name}\nOVERLAY", fontsize=11, pad=10)
             axes[1, col].axis('off')
 
         else:
-            axes[0, col].text(0.5, 0.5, "ERRO", ha='center', va='center',
-                              fontsize=14, color='red', fontweight='bold')
+            axes[0, col].text(0.5, 0.5, "ERRO", ha='center', va='center', fontsize=14, color='red', fontweight='bold')
             axes[0, col].set_title(method_name, fontsize=11)
             axes[0, col].axis('off')
 
-            axes[1, col].text(0.5, 0.5, "ERRO", ha='center', va='center',
-                              fontsize=14, color='red')
+            axes[1, col].text(0.5, 0.5, "ERRO", ha='center', va='center', fontsize=14, color='red')
             axes[1, col].axis('off')
 
-    plt.subplots_adjust(top=0.90, bottom=0.05, left=0.05, right=0.95,
-                        hspace=0.25, wspace=0.35)
+    plt.subplots_adjust(top=0.90, bottom=0.05, left=0.05, right=0.95, hspace=0.25, wspace=0.35)
 
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
