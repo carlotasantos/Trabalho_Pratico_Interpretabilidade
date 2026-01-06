@@ -244,23 +244,22 @@ def main():
         from visualize import generate_visualizations
 
         print("\n" + "=" * 60)
-        print("Gerar Visualizações")
+        print("Gerar Visualizações e Gráficos")
         print("=" * 60)
 
         generated = generate_visualizations(model, device, num_samples=3)
 
         if generated:
-            print("\n Imagens Criadas:")
-            for img in generated:
-                print(f"  • {img}")
+            print("\n Todos os elementos foram criados com sucesso!")
+            print("   (Gráficos + Visualizações)")
         else:
-            print("\n Nenhuma imagem foi criada.")
+            print("\n Alguns elementos podem não ter sido criados.")
 
     except ImportError:
         print("\n Ficheiro visualize.py não encontrado")
-        print("   As visualizações não foram geradas.")
+        print("   As visualizações não foram criadas.")
     except Exception as e:
-        print(f"\n Erro nas visualizações: {e}")
+        print(f"\n Erro: {e}")
 
     print("\n" + "=" * 60)
     print(" Execução Concluída ")

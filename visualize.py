@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision import datasets, transforms
 import random
+import pandas as pd
+import numpy as np
 
 from model import MNISTCNN
 from  explanations import (
@@ -120,19 +122,155 @@ def visualize_sample(img_pil, maps, sample_idx, true_label, pred_label, save_pat
 
     plt.close()
 
+
+def generate_comparative_graphs():
+    """ Gera gráficos comparativos ente métodos e métricas a partir dos resultados guardados em results_summary.csv. """
+    print("\nA gerar gráficos comparativos...")
+
+    try:
+        # Carregar resultados do ficheiro CSV
+        df = pd.read_csv('results_summary.csv')
+
+        # Verificar se o ficheiro tem os dados esperados
+        if df.empty:
+            print("O ficheiro results_summary.csv está vazio.")
+            return False
+
+        print(f"Dados carregados: {len(df)} métodos")
+
+        # ------------------------------------------------------------------
+        # GRÁFICO 1: Pointing Game
+        # ------------------------------------------------------------------
+        plt.figure(figsize=(10, 6))
+
+        # Criar barras
+        bars = plt.bar(df['metodo'], df['pointing_game_mean'], color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'], edgecolor='black', linewidth=1.5, alpha=0.8)
+
+        # Personalizar o gráfico
+        plt.title('Pointing Game - Comparação entre Métodos', fontsize=16, fontweight='bold', pad=15)
+        plt.ylabel('Pointing Game Score', fontsize=12)
+        plt.ylim(0, 1.1)
+        plt.xticks(rotation=15, fontsize=10)
+
+        # Adicionar linha de referência
+        plt.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+
+        # Adicionar valores no topo das barras
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
+
+        plt.grid(axis='y', alpha=0.3, linestyle='--')
+        plt.tight_layout()
+        plt.savefig('pointing_game_comparison.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("Gráfico 1: pointing_game_comparison.png")
+
+        # ------------------------------------------------------------------
+        # GRÁFICO 2: Sparseness
+        # ------------------------------------------------------------------
+        plt.figure(figsize=(10, 6))
+
+        # Criar barras
+        bars = plt.bar(df['metodo'], df['sparseness_mean'], color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'], edgecolor='black', linewidth=1.5, alpha=0.8)
+
+        # Personalizar o gráfico
+        plt.title('Sparseness (Gini) - Comparação entre Métodos', fontsize=16, fontweight='bold', pad=15)
+        plt.ylabel('Sparseness Score', fontsize=12)
+        plt.ylim(0, 1.0)
+        plt.xticks(rotation=15, fontsize=10)
+
+        # Adicionar valores no topo das barras
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
+        plt.grid(axis='y', alpha=0.3, linestyle='--')
+        plt.tight_layout()
+        plt.savefig('sparseness_comparison.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("Gráfico 2: sparseness_comparison.png")
+
+        # ------------------------------------------------------------------
+        # GRÁFICO 3: Comparação das duas métricas
+        # ------------------------------------------------------------------
+        plt.figure(figsize=(12, 7))
+
+        x = np.arange(len(df['metodo']))
+        width = 0.35
+
+        # Criar barras para Pointing Game
+        bars_pg = plt.bar(x - width / 2, df['pointing_game_mean'], width=width, label='Pointing Game', color='#1f77b4', alpha=0.8)
+
+        # Criar barras para Sparseness
+        bars_sp = plt.bar(x + width / 2, df['sparseness_mean'], width=width, label='Sparseness', color='#2ca02c', alpha=0.8)
+
+        # Personalizar o gráfico
+        plt.title('Comparação das Métricas por Método', fontsize=16, fontweight='bold')
+        plt.ylabel('Score', fontsize=12)
+        plt.xticks(x, df['metodo'], rotation=15, fontsize=10)
+        plt.legend(fontsize=11)
+
+        # Adicionar grid
+        plt.grid(axis='y', alpha=0.3, linestyle='--')
+        plt.tight_layout()
+        plt.savefig('comparacao_metricas.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("Gráfico 3: comparacao_metricas.png")
+
+        # ------------------------------------------------------------------
+        # GRÁFICO 4: PG@3 (TOP-K) - se existir
+        # ------------------------------------------------------------------
+        if 'pg@3_mean' in df.columns:
+            plt.figure(figsize=(10, 6))
+            bars = plt.bar(df['metodo'], df['pg@3_mean'], color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'], edgecolor='black', linewidth=1.5, alpha=0.8)
+            plt.title('Pointing Game Top-K (k=3) - Comparação entre Métodos', fontsize=16, fontweight='bold', pad=15)
+            plt.ylabel('PG@3 Score', fontsize=12)
+            plt.ylim(0, 1.1)
+            plt.xticks(rotation=15, fontsize=10)
+
+            # Adicionar valores no topo das barras
+            for bar in bars:
+                height = bar.get_height()
+                plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
+            plt.grid(axis='y', alpha=0.3, linestyle='--')
+            plt.tight_layout()
+            plt.savefig('pg_topk_comparison.png', dpi=150, bbox_inches='tight')
+            plt.close()
+            print("Gráfico 4: pg_topk_comparison.png")
+
+        print("\nGráficos criados com sucesso!")
+        return True
+
+    except FileNotFoundError:
+        print("ERRO: Ficheiro results_summary.csv não encontrado.")
+        return False
+    except Exception as e:
+        print(f"ERRO ao gerar gráficos: {e}")
+        return False
+
+
 def generate_visualizations(model, device, num_samples=3):
-    """ Função principal de visualização que pode ser chamada do main.py. """
-    print("\n" + "="*60)
-    print("Gerar Visualizações")
-    print("="*60)
+    """ Função principal que gera visualizações e gráficos """
+    print("\n" + "=" * 60)
+    print("A gerar visualizações e gráficos comparativos")
+    print("=" * 60)
 
     set_seed(42)
+
+    # Parte 1: Gráficos comparativos
+    print("\nGerar Gráficos Comparativos")
+    print("-" * 40)
+    sucesso_graficos = generate_comparative_graphs()
+
+    # Parte 2: Visualizações de amostras
+    print("\n Gerar Visualizações de Amostras")
+    print("-" * 40)
 
     test_set_size = 10000
     sample_indices = random.sample(range(test_set_size), num_samples)
 
     print(f"Visualizar {num_samples} amostras: {sample_indices}")
-    print("-"*60)
+    print("-" * 40)
 
     generated_images = []
 
@@ -154,11 +292,25 @@ def generate_visualizations(model, device, num_samples=3):
             visualize_sample(img_pil, maps, sample_idx, true_label, pred_label, filename)
             generated_images.append(filename)
         else:
-            print(f"Nenhum mapa calculado")
+            print(f" Nenhum mapa calculado")
 
-    print("\n" + "="*60)
-    print(f"{len(generated_images)} visualizações geradas")
-    print("="*60)
+    print("\n" + "=" * 60)
+    print("Processo de Visualização Concluído")
+    print("=" * 60)
+
+    if sucesso_graficos:
+        print("\nFicheiros Criados:")
+        print("pointing_game_comparison.png")
+        print("sparseness_comparison.png")
+        print("comparacao_metricas.png")
+        if 'pg@3_mean' in pd.read_csv('results_summary.csv').columns:
+            print("pg_topk_comparison.png")
+        for img in generated_images:
+            print(f"{img}")
+    else:
+        print("\nFicheiros Criados (apenas visualizações):")
+        for img in generated_images:
+            print(f"{img}")
 
     return generated_images
 
