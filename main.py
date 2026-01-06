@@ -238,7 +238,33 @@ def main():
                 writer.writerow(row)
 
     print(f"\nFicheiros guardados: {summary_path} e {per_sample_path}")
-    # -----------------------------------------------------
+
+    # ---------------- Visualizações ----------------
+    try:
+        from visualize import generate_visualizations
+
+        print("\n" + "=" * 60)
+        print("Gerar Visualizações")
+        print("=" * 60)
+
+        generated = generate_visualizations(model, device, num_samples=3)
+
+        if generated:
+            print("\n Imagens Criadas:")
+            for img in generated:
+                print(f"  • {img}")
+        else:
+            print("\n Nenhuma imagem foi criada.")
+
+    except ImportError:
+        print("\n Ficheiro visualize.py não encontrado")
+        print("   As visualizações não foram geradas.")
+    except Exception as e:
+        print(f"\n Erro nas visualizações: {e}")
+
+    print("\n" + "=" * 60)
+    print(" Execução Concluída ")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()
