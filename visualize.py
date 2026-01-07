@@ -129,7 +129,7 @@ def generate_comparative_graphs():
 
     try:
         # Carregar resultados do ficheiro CSV
-        df = pd.read_csv('results_summary.csv')
+        df = pd.read_csv('resultados/results_summary.csv')
 
         # Verificar se o ficheiro tem os dados esperados
         if df.empty:
@@ -162,7 +162,7 @@ def generate_comparative_graphs():
 
         plt.grid(axis='y', alpha=0.3, linestyle='--')
         plt.tight_layout()
-        plt.savefig('pointing_game_comparison.png', dpi=150, bbox_inches='tight')
+        plt.savefig('graficos_visualizacoes/pointing_game_comparison.png', dpi=150, bbox_inches='tight')
         plt.close()
         print("Gráfico 1: pointing_game_comparison.png")
 
@@ -186,7 +186,7 @@ def generate_comparative_graphs():
             plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
         plt.grid(axis='y', alpha=0.3, linestyle='--')
         plt.tight_layout()
-        plt.savefig('sparseness_comparison.png', dpi=150, bbox_inches='tight')
+        plt.savefig('graficos_visualizacoes/sparseness_comparison.png', dpi=150, bbox_inches='tight')
         plt.close()
         print("Gráfico 2: sparseness_comparison.png")
 
@@ -213,7 +213,7 @@ def generate_comparative_graphs():
         # Adicionar grid
         plt.grid(axis='y', alpha=0.3, linestyle='--')
         plt.tight_layout()
-        plt.savefig('comparacao_metricas.png', dpi=150, bbox_inches='tight')
+        plt.savefig('graficos_visualizacoes/comparacao_metricas.png', dpi=150, bbox_inches='tight')
         plt.close()
         print("Gráfico 3: comparacao_metricas.png")
 
@@ -234,7 +234,7 @@ def generate_comparative_graphs():
                 plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
             plt.grid(axis='y', alpha=0.3, linestyle='--')
             plt.tight_layout()
-            plt.savefig('pg_topk_comparison.png', dpi=150, bbox_inches='tight')
+            plt.savefig('graficos_visualizacoes/pg_topk_comparison.png', dpi=150, bbox_inches='tight')
             plt.close()
             print("Gráfico 4: pg_topk_comparison.png")
 
@@ -288,7 +288,7 @@ def generate_visualizations(model, device, num_samples=3):
         maps = compute_all_maps(model, x, pred_label, device)
 
         if maps:
-            filename = f"visualization_sample_{i + 1}.png"
+            filename = f"graficos_visualizacoes/visualization_sample_{i + 1}.png"
             visualize_sample(img_pil, maps, sample_idx, true_label, pred_label, filename)
             generated_images.append(filename)
         else:

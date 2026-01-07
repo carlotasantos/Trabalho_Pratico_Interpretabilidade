@@ -213,7 +213,7 @@ def main():
 
     # ---------------- Exportar resultados ----------------
     # médias por método
-    summary_path = "results_summary.csv"
+    summary_path = "resultados/results_summary.csv"
     with open(summary_path, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["metodo", "pointing_game_mean", "sparseness_mean"] + [f"pg@{k}_mean" for k in K_LIST])
@@ -225,7 +225,7 @@ def main():
             writer.writerow([metodo, pg_mean, spar_mean] + topk_means)
 
     # Resultados por amostra
-    per_sample_path = "results_per_sample.csv"
+    per_sample_path = "resultados/results_per_sample.csv"
     with open(per_sample_path, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["metodo", "sample_idx", "pointing_game", "sparseness"] + [f"pg@{k}" for k in K_LIST])
